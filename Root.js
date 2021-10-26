@@ -3,42 +3,31 @@ import { AppRegistry, Text, Platform, View } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { ChunkManager } from "@callstack/repack/client";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 ChunkManager.configure({
+  storage: AsyncStorage,
   forceRemoteChunkResolution: true,
   resolveRemoteChunk: async (chunkId, parentId) => {
     let url;
+    // when the version change, ChunkManager will download new chunk bundle
+    // We can control the version number with BE when mini app have code change
+    const version = "v1";
     switch (parentId) {
       case "app1":
-        console.log(`%c chunkId`, chunkId);
-        if (
-          chunkId ===
-          "vendors-node_modules_react-native_Libraries_Core_Devtools_getDevServer_js-node_modules_react--9ff795"
-        ) {
-          url =
-            "https://drive.google.com/u/0/uc?id=1qhGQoHBnW9YUoAubzP8UCp04VYcxhKpf&export=download";
-        }
-        if (
-          chunkId ===
-          "vendors-node_modules_react-native_Libraries_NewAppScreen_index_js"
-        ) {
-          url =
-            "https://drive.google.com/u/0/uc?id=1qlA2RO_EvxQgMpfqOdRziE_gvzrWzVuE&export=download";
-        }
-        if (chunkId === "src_App_js") {
-          url =
-            "https://drive.google.com/u/0/uc?id=1T1GA-TQXpTIMe6UCyqVPcwBTC4IF-c9_&export=download";
-        }
-        break;
-
+        url = `https://disprzblobindia.blob.core.windows.net/skilltronassetspublic/appTest/miniapp/${version}/${chunkId}.chunk.bundle`;
         break;
       case "main":
       default:
         url =
-          "https://drive.google.com/u/0/uc?id=1PEVrQoITG65xvG62aX1ieLx7yBudIXC9&export=download";
+          {
+            // containers
+            app1: `https://disprzblobindia.blob.core.windows.net/skilltronassetspublic/appTest/miniapp/${version}/app1.container.bundle`,
+          }[chunkId] ??
+          `https://disprzblobindia.blob.core.windows.net/skilltronassetspublic/appTest/miniapp/${version}/${chunkId}.chunk.bundle`;
+
         break;
     }
-    console.log(`%c url`, url);
     return {
       url: `${url}?platform=${Platform.OS}`,
       excludeExtension: true,
